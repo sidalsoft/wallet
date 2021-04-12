@@ -208,6 +208,39 @@ func TestService_FavoritePayment_fail(t *testing.T) {
 	}
 }
 
+func TestService_PayFromFavorite_success(t *testing.T) {
+	srv := &Service{
+		accounts:  make([]*types.Account, 0),
+		payments:  make([]*types.Payment, 0),
+		favorites: make([]*types.Favorite, 0),
+	}
+	ac, _ := srv.RegisterAccount("+992928885522")
+	_ = srv.Deposit(ac.ID, 500)
+
+	pp, _ := srv.Pay(ac.ID, 5, "salom")
+
+	fw, _ := srv.FavoritePayment(pp.ID, "sidal")
+
+	_, err := srv.PayFromFavorite(fw.ID)
+	if err != nil {
+		t.Error("PayFromFavorite(): can't make favorite return error, returned nil")
+		return
+	}
+}
+
+func TestService_PayFromFavorite_fail(t *testing.T) {
+	srv := &Service{
+		accounts:  make([]*types.Account, 0),
+		payments:  make([]*types.Payment, 0),
+		favorites: make([]*types.Favorite, 0),
+	}
+	_, err := srv.PayFromFavorite(uuid.New().String())
+	if err == nil {
+		t.Error("FavoritePayment(): must return error, returned nil")
+		return
+	}
+}
+
 func TestService_FindFavoriteByID_success(t *testing.T) {
 	srv := &Service{
 		accounts:  make([]*types.Account, 0),

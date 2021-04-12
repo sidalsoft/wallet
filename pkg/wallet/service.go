@@ -141,7 +141,7 @@ func (s *Service) PayFromFavorite(favoriteID string) (*types.Payment, error) {
 	if err != nil {
 		return nil, err
 	}
-	return s.Repeat(fw.ID)
+	return s.Pay(fw.AccountID, fw.Amount, fw.Category)
 }
 
 func (s *Service) FindAccountByID(accountID int64) (*types.Account, error) {
