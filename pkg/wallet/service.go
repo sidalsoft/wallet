@@ -8,16 +8,19 @@ import (
 
 var (
 	ErrPhoneRegistered      = errors.New("phone already registered")
+	ErrFavoriteRegistered   = errors.New("favorite already registered")
 	ErrAmountMustBePositive = errors.New("amount must be greater than zero")
 	ErrAccountNotFound      = errors.New("account not found")
 	ErrNotEnoughBalance     = errors.New("not enough balance")
 	ErrPaymentNotFound      = errors.New("payment not found")
+	ErrFavoriteNotFound     = errors.New("favorite not found")
 )
 
 type Service struct {
 	nextAccountID int64
 	accounts      []*types.Account
 	payments      []*types.Payment
+	favorites     []*types.Favorite
 }
 
 func (s *Service) RegisterAccount(phone types.Phone) (*types.Account, error) {
@@ -111,6 +114,36 @@ func (s *Service) Repeat(paymentID string) (*types.Payment, error) {
 	return pp, nil
 }
 
+func (s *Service) FavoritePayment(paymentID string, name string) (*types.Favorite, error) {
+	for _, favorite := range s.favorites {
+		if favorite.Name == name {
+			return nil, ErrFavoriteRegistered
+		}
+	}
+	payment, err := s.FindPaymentByID(paymentID)
+	if err != nil {
+		return nil, err
+	}
+	s.nextAccountID++
+	favorite := &types.Favorite{
+		ID:        uuid.New().String(),
+		AccountID: payment.AccountID,
+		Name:      name,
+		Amount:    payment.Amount,
+		Category:  payment.Category,
+	}
+	s.favorites = append(s.favorites, favorite)
+	return favorite, nil
+}
+
+func (s *Service) PayFromFavorite(favoriteID string) (*types.Payment, error) {
+	fw, err := s.FindFavoriteByID(favoriteID)
+	if err != nil {
+		return nil, err
+	}
+	return s.Repeat(fw.ID)
+}
+
 func (s *Service) FindAccountByID(accountID int64) (*types.Account, error) {
 	for _, acc := range s.accounts {
 		if acc.ID == accountID {
@@ -127,4 +160,13 @@ func (s *Service) FindPaymentByID(paymentID string) (*types.Payment, error) {
 		}
 	}
 	return nil, ErrPaymentNotFound
+}
+
+func (s *Service) FindFavoriteByID(favoriteID string) (*types.Favorite, error) {
+	for _, py := range s.favorites {
+		if py.ID == favoriteID {
+			return py, nil
+		}
+	}
+	return nil, ErrFavoriteNotFound
 }
