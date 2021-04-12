@@ -188,7 +188,7 @@ func TestService_FavoritePayment_success(t *testing.T) {
 	}
 }
 
-func TestService_FavoritePayment(t *testing.T) {
+func TestService_FavoritePayment_fail(t *testing.T) {
 	srv := &Service{
 		accounts:  make([]*types.Account, 0),
 		payments:  make([]*types.Payment, 0),
@@ -203,7 +203,39 @@ func TestService_FavoritePayment(t *testing.T) {
 	_, err = srv.FavoritePayment(pp.ID, "sidal")
 
 	if err == nil {
-		t.Error("Repeat(): must return error, returned nil")
+		t.Error("FavoritePayment(): must return error, returned nil")
 		return
+	}
+}
+
+func TestService_FindFavoriteByID_success(t *testing.T) {
+	srv := &Service{
+		accounts:  make([]*types.Account, 0),
+		payments:  make([]*types.Payment, 0),
+		favorites: make([]*types.Favorite, 0),
+	}
+	ac, _ := srv.RegisterAccount("+992928885522")
+	_ = srv.Deposit(ac.ID, 500)
+
+	pp, _ := srv.Pay(ac.ID, 5, "salom")
+
+	fw, _ := srv.FavoritePayment(pp.ID, "sidal")
+
+	_, err := srv.FindFavoriteByID(fw.ID)
+	if err != nil {
+		t.Error("FindFavoriteByID(): can't make favorite return error, returned nil")
+	}
+}
+
+func TestService_FindFavoriteByID_fail(t *testing.T) {
+	srv := &Service{
+		accounts:  make([]*types.Account, 0),
+		payments:  make([]*types.Payment, 0),
+		favorites: make([]*types.Favorite, 0),
+	}
+	_, err := srv.FindFavoriteByID(uuid.New().String())
+
+	if err == nil {
+		t.Error("FindFavoriteByID(): must return error, returned nil")
 	}
 }
