@@ -99,6 +99,18 @@ func (s *Service) Reject(paymentID string) error {
 	return nil
 }
 
+func (s *Service) Repeat(paymentID string) (*types.Payment, error) {
+	p, err := s.FindPaymentByID(paymentID)
+	if err != nil {
+		return nil, err
+	}
+	pp, err := s.Pay(p.AccountID, p.Amount, p.Category)
+	if err != nil {
+		return nil, err
+	}
+	return pp, nil
+}
+
 func (s *Service) FindAccountByID(accountID int64) (*types.Account, error) {
 	for _, acc := range s.accounts {
 		if acc.ID == accountID {
