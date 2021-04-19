@@ -1,5 +1,7 @@
 package types
 
+import "fmt"
+
 //Money представляет собой денежную сумму в мин единицах
 type Money int64
 
@@ -32,6 +34,10 @@ type Account struct {
 	ID      int64
 	Phone   Phone
 	Balance Money
+}
+
+func (ac *Account) ToString() string {
+	return fmt.Sprint(ac.ID, "|", ac.Phone)
 }
 
 type Favorite struct {

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	"github.com/sidalsoft/wallet/pkg/types"
+	"os"
 )
 
 var (
@@ -169,4 +170,19 @@ func (s *Service) FindFavoriteByID(favoriteID string) (*types.Favorite, error) {
 		}
 	}
 	return nil, ErrFavoriteNotFound
+}
+
+func (s *Service) ExportToFile(path string) error {
+	file, err := os.Create(path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	for _, account := range s.accounts {
+		_, err = file.Write([]byte(account.ToString() + "\n"))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
