@@ -4,7 +4,10 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	"github.com/sidalsoft/wallet/pkg/types"
+	"io"
 	"os"
+	"strconv"
+	"strings"
 )
 
 var (
@@ -180,6 +183,31 @@ func (s *Service) ExportToFile(path string) error {
 	defer file.Close()
 	for _, account := range s.accounts {
 		_, err = file.Write([]byte(account.ToString() + "|"))
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *Service) ImportFromFile(path string) error {
+	file, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	str, _ := io.ReadAll(file)
+	arr := strings.Split(string(str), "|")
+	for _, ac := range arr {
+		accountStr := strings.Split(ac, ";")
+		if len(accountStr) < 2 {
+			continue
+		}
+		account, err := s.RegisterAccount(types.Phone(accountStr[1]))
+		if err != nil {
+			return err
+		}
+		m, _ := strconv.Atoi(accountStr[2])
+		err = s.Deposit(account.ID, types.Money(m))
 		if err != nil {
 			return err
 		}
