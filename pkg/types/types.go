@@ -37,7 +37,7 @@ type Account struct {
 }
 
 func (ac *Account) ToString() string {
-	return fmt.Sprint(ac.ID, "|", ac.Phone)
+	return fmt.Sprint(ac.ID, ";", ac.Phone, ";", ac.Balance)
 }
 
 type Favorite struct {

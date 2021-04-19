@@ -179,7 +179,7 @@ func (s *Service) ExportToFile(path string) error {
 	}
 	defer file.Close()
 	for _, account := range s.accounts {
-		_, err = file.Write([]byte(account.ToString() + "\n"))
+		_, err = file.Write([]byte(account.ToString() + "|"))
 		if err != nil {
 			return err
 		}
