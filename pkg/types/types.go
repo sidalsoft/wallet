@@ -27,6 +27,10 @@ type Payment struct {
 	Status    PaymentStatus
 }
 
+func (ac *Payment) ToString() string {
+	return fmt.Sprint(ac.ID, ";", ac.AccountID, ";", ac.Amount, ";", ac.Category, ";", ac.Status)
+}
+
 type Phone string
 
 //Account предаствялет информацию о счете пользоватлея
@@ -46,4 +50,8 @@ type Favorite struct {
 	Name      string
 	Amount    Money
 	Category  PaymentCategory
+}
+
+func (ac *Favorite) ToString() string {
+	return fmt.Sprint(ac.ID, ";", ac.AccountID, ";", ac.Name, ";", ac.Amount, ";", ac.Category)
 }
