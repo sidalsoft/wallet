@@ -10,6 +10,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 var (
@@ -20,7 +21,6 @@ var (
 	ErrNotEnoughBalance     = errors.New("not enough balance")
 	ErrPaymentNotFound      = errors.New("payment not found")
 	ErrFavoriteNotFound     = errors.New("favorite not found")
-	ErrMinRecords           = errors.New("write at least 1 record")
 )
 
 type Service struct {
@@ -396,7 +396,7 @@ func (s *Service) HistoryToFiles(payments []types.Payment, dir string, records i
 			for _, v := range payments {
 				str += v.ToString() + "\n"
 			}
-			file.WriteString(str)
+			_, _ = file.WriteString(str)
 		} else {
 
 			var str string
@@ -422,4 +422,43 @@ func (s *Service) HistoryToFiles(payments []types.Payment, dir string, records i
 	}
 
 	return nil
+}
+
+func (s *Service) SumPayments(goroutines int) types.Money {
+	mu := sync.Mutex{}
+	sum := types.Money(0)
+	m1 := len(s.payments) % goroutines
+	m := len(s.payments) / goroutines
+
+	wg := sync.WaitGroup{}
+	ss := 0
+	for i := 0; i < goroutines; i++ {
+		wg.Add(1)
+		sss := ss
+		go func(sss int) {
+			defer wg.Done()
+			val := types.Money(0)
+
+			payments := s.payments[sss : sss+m]
+			for _, p := range payments {
+				if p == nil {
+					continue
+				}
+				val += p.Amount
+			}
+			mu.Lock()
+			defer mu.Unlock()
+			sum += val
+		}(sss)
+		ss += m
+	}
+	go func() {
+		if m1 > 0 {
+			for _, p := range s.payments[ss : ss+m1] {
+				sum += p.Amount
+			}
+		}
+	}()
+	wg.Wait()
+	return sum
 }
