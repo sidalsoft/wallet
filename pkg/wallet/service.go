@@ -276,93 +276,87 @@ func (s *Service) Import(dir string) error {
 		return string(data)
 	}
 
-	if s.accounts != nil {
-		data := read("accounts")
-		arr := strings.Split(data, "\n")
-		for _, ac := range arr {
-			accountStr := strings.Split(ac, ";")
-			if len(accountStr) < 2 {
-				continue
-			}
-			ID, _ := strconv.Atoi(accountStr[0])
-			Phone := types.Phone(accountStr[1])
-			Balance, _ := strconv.Atoi(accountStr[2])
-			fw, err := s.FindAccountByID(int64(ID))
-			if err == nil {
-				fw.Phone = Phone
-				fw.Balance = types.Money(Balance)
-				continue
-			}
-			s.accounts = append(s.accounts, &types.Account{
+	data := read("accounts")
+	arr := strings.Split(data, "\n")
+	for _, ac := range arr {
+		accountStr := strings.Split(ac, ";")
+		if len(accountStr) < 2 {
+			continue
+		}
+		ID, _ := strconv.Atoi(accountStr[0])
+		Phone := types.Phone(accountStr[1])
+		Balance, _ := strconv.Atoi(accountStr[2])
+		fw, err := s.FindAccountByID(int64(ID))
+		if err != nil {
+			fw = &types.Account{
 				ID:      int64(ID),
 				Phone:   Phone,
 				Balance: types.Money(Balance),
-			})
+			}
+			s.accounts = append(s.accounts, fw)
 			s.nextAccountID = int64(ID)
 		}
+		fw.Phone = Phone
+		fw.Balance = types.Money(Balance)
 	}
 
-	if s.payments != nil {
-		data := read("payments")
-		payments := strings.Split(data, "\n")
-		for _, ac := range payments {
-			paymentStr := strings.Split(ac, ";")
-			if len(paymentStr) < 2 {
-				continue
-			}
-			ID := paymentStr[0]
-			AccountID, _ := strconv.Atoi(paymentStr[1])
-			Amount, _ := strconv.Atoi(paymentStr[2])
-			Category := paymentStr[3]
-			Status := paymentStr[4]
-			py, err := s.FindPaymentByID(ID)
-			if err == nil {
-				py.AccountID = int64(AccountID)
-				py.Amount = types.Money(Amount)
-				py.Category = types.PaymentCategory(Category)
-				py.Status = types.PaymentStatus(Status)
-				continue
-			}
-			s.payments = append(s.payments, &types.Payment{
-				ID:        ID,
-				AccountID: int64(AccountID),
-				Amount:    types.Money(Amount),
-				Category:  types.PaymentCategory(Category),
-				Status:    types.PaymentStatus(Status),
-			})
+	data = read("payments")
+	payments := strings.Split(data, "\n")
+	for _, ac := range payments {
+		paymentStr := strings.Split(ac, ";")
+		if len(paymentStr) < 2 {
+			continue
 		}
+		ID := paymentStr[0]
+		AccountID, _ := strconv.Atoi(paymentStr[1])
+		Amount, _ := strconv.Atoi(paymentStr[2])
+		Category := paymentStr[3]
+		Status := paymentStr[4]
+		py, err := s.FindPaymentByID(ID)
+		if err == nil {
+			py.AccountID = int64(AccountID)
+			py.Amount = types.Money(Amount)
+			py.Category = types.PaymentCategory(Category)
+			py.Status = types.PaymentStatus(Status)
+			continue
+		}
+		s.payments = append(s.payments, &types.Payment{
+			ID:        ID,
+			AccountID: int64(AccountID),
+			Amount:    types.Money(Amount),
+			Category:  types.PaymentCategory(Category),
+			Status:    types.PaymentStatus(Status),
+		})
 	}
 
-	if s.favorites != nil {
-		data := read("favorites")
-		favorites := strings.Split(data, "\n")
-		for _, ac := range favorites {
-			favoriteStr := strings.Split(ac, ";")
-			if len(favoriteStr) < 2 {
-				continue
-			}
-			ID := favoriteStr[0]
-			AccountID, _ := strconv.Atoi(favoriteStr[1])
-			Name := favoriteStr[2]
-			Amount, _ := strconv.Atoi(favoriteStr[3])
-			Category := favoriteStr[4]
-			fw, err := s.FindFavoriteByID(ID)
-			if err == nil {
-				fw.AccountID = int64(AccountID)
-				fw.Amount = types.Money(Amount)
-				fw.Name = Name
-				fw.Category = types.PaymentCategory(Category)
-				continue
-			}
-			favorite := &types.Favorite{
-				ID:        uuid.New().String(),
-				AccountID: int64(AccountID),
-				Amount:    types.Money(Amount),
-				Name:      Name,
-				Category:  types.PaymentCategory(Category),
-			}
-			s.favorites = append(s.favorites, favorite)
+	data = read("favorites")
+	favorites := strings.Split(data, "\n")
+	for _, ac := range favorites {
+		favoriteStr := strings.Split(ac, ";")
+		if len(favoriteStr) < 2 {
+			continue
 		}
+		ID := favoriteStr[0]
+		AccountID, _ := strconv.Atoi(favoriteStr[1])
+		Name := favoriteStr[2]
+		Amount, _ := strconv.Atoi(favoriteStr[3])
+		Category := favoriteStr[4]
+		fw, err := s.FindFavoriteByID(ID)
+		if err == nil {
+			fw.AccountID = int64(AccountID)
+			fw.Amount = types.Money(Amount)
+			fw.Name = Name
+			fw.Category = types.PaymentCategory(Category)
+			continue
+		}
+		favorite := &types.Favorite{
+			ID:        uuid.New().String(),
+			AccountID: int64(AccountID),
+			Amount:    types.Money(Amount),
+			Name:      Name,
+			Category:  types.PaymentCategory(Category),
+		}
+		s.favorites = append(s.favorites, favorite)
 	}
 	return nil
 }
