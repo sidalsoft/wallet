@@ -462,3 +462,37 @@ func (s *Service) SumPayments(goroutines int) types.Money {
 	wg.Wait()
 	return sum
 }
+
+func (s *Service) SumPaymentsWithProgress() <-chan types.Progress {
+	gorotunCountSize := 100_0000
+
+	wg := sync.WaitGroup{}
+	goroutines := len(s.payments) / gorotunCountSize
+	if goroutines <= 1 {
+		goroutines = 1
+
+	}
+	ch := make(chan types.Progress)
+
+	for i := 0; i < goroutines; i++ {
+		wg.Add(1)
+		go func(ch chan<- types.Progress, payments []*types.Payment) {
+			var sum types.Money = 0
+			defer wg.Done()
+			for _, pay := range payments {
+				sum += pay.Amount
+			}
+			ch <- types.Progress{
+				Part:   len(payments),
+				Result: sum,
+			}
+		}(ch, s.payments)
+	}
+
+	go func() {
+		defer close(ch)
+		wg.Wait()
+	}()
+
+	return ch
+}

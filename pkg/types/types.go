@@ -55,3 +55,8 @@ type Favorite struct {
 func (ac *Favorite) ToString() string {
 	return fmt.Sprint(ac.ID, ";", ac.AccountID, ";", ac.Name, ";", ac.Amount, ";", ac.Category)
 }
+
+type Progress struct {
+	Part   int
+	Result Money
+}
